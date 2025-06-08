@@ -71,3 +71,36 @@ SNS投稿／他人の弁当閲覧（後回し）
 デプロイ	Vercel
 
 ## DB設計
+
+### テーブル構成
+users
+bentos
+tags
+bento_tags
+
+### テーブル詳細
+
+#### bentos
+| カラム名        | 型         | 説明                        |
+| ----------- | --------- | ------------------------- |
+| id          | UUID      | 弁当ID（主キー）                 |
+| user\_id    | UUID      | 所有者（`users.id` 外部キー）      |
+| title       | TEXT      | 弁当のタイトル（例：からあげ弁当）         |
+| memo        | TEXT      | 自由メモ欄                     |
+| photo\_url  | TEXT      | 画像URL（Supabase Storage連携） |
+| date        | DATE      | 弁当を作った日                   |
+| created\_at | TIMESTAMP | 記録作成日                     |
+
+#### tags
+| カラム名     | 型    | 説明                |
+| -------- | ---- | ----------------- |
+| id       | UUID | タグID（主キー）         |
+| name     | TEXT | タグ名（例："和風", "冷凍"） |
+| user\_id | UUID | 作成者（`users.id`）   |
+
+#### bento_tags
+| カラム名      | 型    | 説明               |
+| --------- | ---- | ---------------- |
+| id        | UUID | 主キー              |
+| bento\_id | UUID | `bentos.id` 外部キー |
+| tag\_id   | UUID | `tags.id` 外部キー   |

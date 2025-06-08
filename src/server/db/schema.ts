@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
+import { index, pgTableCreator, primaryKey, text, date, timestamp, uuid } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
 
 /**
@@ -50,6 +50,8 @@ export const users = createTable("user", (d) => ({
 
 export const usersRelations = relations(users, ({ many }) => ({
 	accounts: many(accounts),
+	bentos: many(bentos),
+	tags: many(tags),
 }));
 
 export const accounts = createTable(
@@ -106,3 +108,87 @@ export const verificationTokens = createTable(
 	}),
 	(t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
+
+// Bento-related tables
+export const bentos = createTable(
+	"bento",
+	(d) => ({
+		id: d
+			.uuid()
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		userId: d
+			.varchar({ length: 255 })
+			.notNull()
+			.references(() => users.id),
+		title: d.text().notNull(),
+		memo: d.text(),
+		photoUrl: d.text(),
+		date: d.date().notNull(),
+		createdAt: d
+			.timestamp({ withTimezone: true })
+			.default(sql`CURRENT_TIMESTAMP`)
+			.notNull(),
+	}),
+	(t) => [
+		index("bento_user_id_idx").on(t.userId),
+		index("bento_date_idx").on(t.date),
+	],
+);
+
+export const tags = createTable(
+	"tag",
+	(d) => ({
+		id: d
+			.uuid()
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		name: d.text().notNull(),
+		userId: d
+			.varchar({ length: 255 })
+			.notNull()
+			.references(() => users.id),
+	}),
+	(t) => [
+		index("tag_user_id_idx").on(t.userId),
+		index("tag_name_idx").on(t.name),
+	],
+);
+
+export const bentoTags = createTable(
+	"bento_tag",
+	(d) => ({
+		id: d
+			.uuid()
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		bentoId: d
+			.uuid()
+			.notNull()
+			.references(() => bentos.id),
+		tagId: d
+			.uuid()
+			.notNull()
+			.references(() => tags.id),
+	}),
+	(t) => [
+		index("bento_tag_bento_id_idx").on(t.bentoId),
+		index("bento_tag_tag_id_idx").on(t.tagId),
+	],
+);
+
+// Relations
+export const bentosRelations = relations(bentos, ({ one, many }) => ({
+	user: one(users, { fields: [bentos.userId], references: [users.id] }),
+	bentoTags: many(bentoTags),
+}));
+
+export const tagsRelations = relations(tags, ({ one, many }) => ({
+	user: one(users, { fields: [tags.userId], references: [users.id] }),
+	bentoTags: many(bentoTags),
+}));
+
+export const bentoTagsRelations = relations(bentoTags, ({ one }) => ({
+	bento: one(bentos, { fields: [bentoTags.bentoId], references: [bentos.id] }),
+	tag: one(tags, { fields: [bentoTags.tagId], references: [tags.id] }),
+}));
