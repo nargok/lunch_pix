@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LunchRegister } from "./lunch-register";
+import { CalendarView } from "./calendar-view";
 
 interface LunchBox {
   id: string;
@@ -64,6 +65,7 @@ const mockLunchBoxes: LunchBox[] = [
 export function LunchList() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showRegister, setShowRegister] = useState(false);
+  const [currentView, setCurrentView] = useState<'list' | 'calendar'>('list');
 
   if (showRegister) {
     return <LunchRegister onBack={() => setShowRegister(false)} />;
@@ -102,76 +104,114 @@ export function LunchList() {
         </div>
       </div>
 
-      {/* Tag Filter */}
+      {/* Tab Navigation */}
       <div className="bg-white border-b border-gray-200 p-4">
         <div className="max-w-4xl mx-auto">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-4">
             <button
-              onClick={() => setSelectedTag(null)}
-              className={`px-3 py-1 rounded-full text-sm ${
-                selectedTag === null 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              type="button"
+              onClick={() => setCurrentView('list')}
+              className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                currentView === 'list'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              すべて
+              📱 写真一覧
             </button>
-            {allTags.map(tag => (
+            <button
+              type="button"
+              onClick={() => setCurrentView('calendar')}
+              className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                currentView === 'calendar'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              🗓️ カレンダー
+            </button>
+          </div>
+
+          {/* Tag Filter - only show in list view */}
+          {currentView === 'list' && (
+            <div className="flex flex-wrap gap-2">
               <button
-                key={tag}
-                onClick={() => setSelectedTag(tag)}
+                type="button"
+                onClick={() => setSelectedTag(null)}
                 className={`px-3 py-1 rounded-full text-sm ${
-                  selectedTag === tag
-                    ? 'bg-blue-500 text-white'
+                  selectedTag === null 
+                    ? 'bg-blue-500 text-white' 
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                {tag}
+                すべて
               </button>
-            ))}
-          </div>
+              {allTags.map(tag => (
+                <button
+                  type="button"
+                  key={tag}
+                  onClick={() => setSelectedTag(tag)}
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    selectedTag === tag
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Photo Grid */}
-      <div className="max-w-4xl mx-auto p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredLunches.map(lunch => (
-            <div key={lunch.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="aspect-square bg-gray-200 relative">
-                <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                  📷 {lunch.title}
+      {/* Content Area */}
+      <div className="max-w-4xl mx-auto">
+        {currentView === 'list' ? (
+          <div className="p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredLunches.map(lunch => (
+                <div key={lunch.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <div className="aspect-square bg-gray-200 relative">
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                      📷 {lunch.title}
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-900 mb-1">{lunch.title}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{lunch.date}</p>
+                    {lunch.memo && (
+                      <p className="text-sm text-gray-700 mb-2">{lunch.memo}</p>
+                    )}
+                    <div className="flex flex-wrap gap-1">
+                      {lunch.tags.map(tag => (
+                        <span
+                          key={tag}
+                          className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-1">{lunch.title}</h3>
-                <p className="text-sm text-gray-600 mb-2">{lunch.date}</p>
-                {lunch.memo && (
-                  <p className="text-sm text-gray-700 mb-2">{lunch.memo}</p>
-                )}
-                <div className="flex flex-wrap gap-1">
-                  {lunch.tags.map(tag => (
-                    <span
-                      key={tag}
-                      className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <CalendarView lunchBoxes={mockLunchBoxes} />
+        )}
       </div>
 
       {/* Add Button */}
       <div className="fixed bottom-6 right-6">
         <button 
+          type="button"
           onClick={() => setShowRegister(true)}
-          className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-4 shadow-lg transition-colors"
+          className="rounded-full bg-blue-500 p-4 text-white shadow-lg transition-colors hover:bg-blue-600"
+          aria-label="弁当を記録"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
         </button>
