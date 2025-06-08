@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { LunchRegister } from "./lunch-register";
 
 interface LunchBox {
   id: string;
@@ -62,6 +63,11 @@ const mockLunchBoxes: LunchBox[] = [
 
 export function LunchList() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [showRegister, setShowRegister] = useState(false);
+
+  if (showRegister) {
+    return <LunchRegister onBack={() => setShowRegister(false)} />;
+  }
 
   const allTags = Array.from(new Set(mockLunchBoxes.flatMap(lunch => lunch.tags)));
   
@@ -161,7 +167,10 @@ export function LunchList() {
 
       {/* Add Button */}
       <div className="fixed bottom-6 right-6">
-        <button className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-4 shadow-lg transition-colors">
+        <button 
+          onClick={() => setShowRegister(true)}
+          className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-4 shadow-lg transition-colors"
+        >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
@@ -170,7 +179,11 @@ export function LunchList() {
 
       {/* Mobile Add Button */}
       <div className="bg-white border-t border-gray-200 p-4 md:hidden">
-        <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-semibold transition-colors">
+        <button 
+          type="button"
+          onClick={() => setShowRegister(true)}
+          className="w-full rounded-lg bg-blue-500 py-3 font-semibold text-white transition-colors hover:bg-blue-600"
+        >
           + 弁当を記録
         </button>
       </div>
