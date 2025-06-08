@@ -1,5 +1,13 @@
 import { relations, sql } from "drizzle-orm";
-import { index, pgTableCreator, primaryKey, text, date, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+	date,
+	index,
+	pgTableCreator,
+	primaryKey,
+	text,
+	timestamp,
+	uuid,
+} from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
 
 /**
